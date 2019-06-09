@@ -6,9 +6,7 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }))
 
-
-app.get('/hello', (req, res) => {
-    res.send('Hello World!!');
-});
+const yelpService = require('./services/yelp.service.server');
+yelpService(app, yelp);
 
 app.listen(8080);
