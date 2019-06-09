@@ -43,6 +43,6 @@ module.exports = (app, yelp) => {
     }
 
     app.get('/api/restaurants', findAllRestaurants);
-    app.get('/api/restaurants/term/:str', findAllRestaurants);
+    app.get('/api/restaurants/term/:term', findAllRestaurants);
     app.get('/api/restaurants/:id', findRestaurantById);
 };
