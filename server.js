@@ -17,4 +17,7 @@ app.use(function(req, res, next) {
 const yelpService = require('./services/yelp.service.server');
 yelpService(app);
 
+const userController = require('./controllers/user.controller.server');
+userController(app);
+
 app.listen(8080);
