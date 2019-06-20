@@ -1,5 +1,6 @@
 const constants = require('../utility/constants')();
-module.exports = (app, yelp) => {
+const yelp = require('yelp-fusion');
+module.exports = (app) => {
     const yelpClient = yelp.client(constants.yelpApiKey);
     const yelpDao = require('../dao/yelp.dao.server')(yelpClient);
 
