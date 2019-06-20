@@ -1,2 +1,12 @@
-const mongoose = require('mongoose');
-const ownerSchema = require('./../models/owner.schema.server');
+const ownerModel = require('./../models/owner.model.server');
+
+register = () => {
+    return ownerModel.create({
+        restaurants: [],
+        comments: []
+    });
+}
+
+module.exports = {
+    register
+};

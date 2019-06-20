@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 require('./models/db');
 
 var app = express();
@@ -13,6 +14,13 @@ app.use(function(req, res, next) {
       "GET, POST, PUT, DELETE, OPTIONS");
   next();
 });
+
+app.use(session({
+  resave: false,
+  saveUninitialized: true,
+  secret: 'zenzero#'
+ }));
+ 
 
 const yelpService = require('./services/yelp.service.server');
 yelpService(app);
