@@ -78,12 +78,9 @@ module.exports = function(app) {
         if(!req.session['user']) {
             res.send(400);
         }
-        offerService.createOffer(req.body)
+        offerService.createOffer(req.body, req.params.id)
             .then((offer) => {
-                restaurantService.addOfferToRestaurant(req.params.id, offer._id)
-                    .then((restaurant) => {
-                        res.send(200);
-                    });
+                res.send(200);
             });
     }
 
@@ -91,12 +88,9 @@ module.exports = function(app) {
         if(!req.session['user']) {
             res.send(400);
         }
-        eventService.createEvent(req.body)
+        eventService.createEvent(req.body, req.params.id,)
             .then((event) => {
-                restaurantService.addEventToRestaurant(req.params.id, event._id)
-                    .then((restaurant) => {
-                        res.send(200);
-                    });
+                res.send(200);
             });
     }
 
@@ -104,26 +98,27 @@ module.exports = function(app) {
         if(!req.session['user']) {
             res.send(400);
         }
-        questionService.createQuestion(req.body, req.session['user']._id)
-            .then((event) => {
-                restaurantService.addQuestionToRestaurant(req.params.id, question._id)
-                    .then((restaurant) => {
-                        res.send(200);
-                    });
+        questionService.createQuestion(req.body, req.params.id, req.session['user']._id)
+            .then((question) => {
+                res.send(200);
             });
     }
 
     getRestaurantById = (req, res) => {
-        restaurantService.getRestaurantById(req.params.id)
+        const restaurantId = req.params.id;
+        restaurantService.getRestaurantById(restaurantId)
             .then((restaurant) => {
                 yelpService.findRestaurantById(restaurant.yelp)
                     .then((yelpRestaurant) => {
-                        yelpRestaurant.offers = restaurant.offers;
-                        yelpRestaurant.events = restaurant.events;
-                        yelpRestaurant.questions = restaurant.questions;
-                        yelpRestaurant.user = restaurant.user;
-                        res.json(yelpRestaurant);
-                    })
+                        questionService.getQuestionsByRestaurantId(restaurantId)
+                            .then((questions) => {
+                                yelpRestaurant.questions = questions;
+                                eventService.getEventsByRestaurantId(restaurantId)
+                                    .then((events) => {
+                                        yelpRestaurant.events = events;
+                                    });
+                            });
+                    });
             });
     }
 
@@ -137,20 +132,26 @@ module.exports = function(app) {
             });
     }
 
+    getQuestionsByRestaurantId = (req, res) => {
+        res.send(200);
+    }
 
-    app.delete('/api/restaurants/', deleteAllRestaurants)
 
-    app.post('/api/restaurants/:id/offer', createOffer)
-    app.post('/api/restaurants/:id/event', createEvent)
-    app.post('/api/restaurants/:id/question', createQuestion)
+    app.delete('/api/restaurants/', deleteAllRestaurants);
 
-    app.get('/api/restaurants/:id', getRestaurantById)
+    app.post('/api/restaurants/:id/offer', createOffer);
+    app.post('/api/restaurants/:id/event', createEvent);
+    app.post('/api/restaurants/:id/question', createQuestion);
 
-    app.put('/api/restaurants/:id/register', registerToRestaurant)
+    app.get('/api/restaurants/:id/question', getQuestionsByRestaurantId);
+
+    app.get('/api/restaurants/:id', getRestaurantById);
+
+    app.put('/api/restaurants/:id/register', registerToRestaurant);
 
     app.get('/api/restaurants/', findAllRestaurants);
 
-    app.get('/api/restaurants/db/:id', findDbRestaurantById)
+    app.get('/api/restaurants/db/:id', findDbRestaurantById);
 
     app.get('/api/restaurants/db/', findAllDbRestaurants);
 };

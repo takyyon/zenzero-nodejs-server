@@ -14,10 +14,7 @@ const restaurantSchema = mongoose.Schema({
     longitude: Number,
     url: String,
     price: String,
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserModel' },
-    offers: [ { type: mongoose.Schema.Types.ObjectId, ref: 'OfferModel' } ],
-    questions: [ { type: mongoose.Schema.Types.ObjectId, ref: 'QuestionModel' } ],
-    events: [ { type: mongoose.Schema.Types.ObjectId, ref: 'EventModel' } ]
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserModel' }
 }, {collection: 'restaurant'});
 
 module.exports = restaurantSchema;

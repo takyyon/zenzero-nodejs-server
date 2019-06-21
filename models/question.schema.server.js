@@ -5,7 +5,7 @@ const questionSchema = mongoose.Schema({
     text: String,
     created: {type: Date, default: Date.now},
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserModel' },
-    comments: [ { type: mongoose.Schema.Types.ObjectId, ref: 'CommentModel' } ]
+    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'RestaurantModel' }
 }, {collection: 'question'});
 
 module.exports = questionSchema;

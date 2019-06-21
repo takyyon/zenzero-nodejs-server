@@ -25,18 +25,6 @@ findRestaurantByYelpId = (id) => {
     return restaurantDao.findRestaurantByYelpId(id);
 }
 
-addOfferToRestaurant = (restaurantId, offerId) => {
-    return restaurantDao.addOfferToRestaurant(restaurantId, offerId);
-}
-
-addEventToRestaurant = (restaurantId, eventId) => {
-    return restaurantDao.addEventToRestaurant(restaurantId, eventId);
-}
-
-addQuestionToRestaurant = (restaurantId, questionId) => {
-    return restaurantDao.addQuestionToRestaurant(restaurantId, questionId);
-}
-
 registerToRestaurant = (restaurantId, userId) => {
     return restaurantDao.registerToRestaurant(restaurantId, userId);
 }
@@ -48,8 +36,5 @@ module.exports = {
     deleteAllRestaurants,
     createRestaurant,
     findRestaurantByYelpId,
-    addOfferToRestaurant,
-    addEventToRestaurant,
-    addQuestionToRestaurant,
     registerToRestaurant
 };

@@ -1,13 +1,39 @@
 const questionModel = require('./../models/question.model.server');
 
-createQuestion = (question, userId) => {
+createQuestion = (question, restaurantId, userId) => {
     return questionModel.create({
         text: question.text,
         user: userId,
-        comments: []
+        restaurant: restaurantId
     });
 }
 
+getQuestionsByRestaurantId = (restaurantId) => {
+    return questionModel
+            .find({'restaurant': restaurantId});
+}
+
+getQuestionsByUserId = (userId) => {
+    return questionModel
+            .find({'user': userId});
+}
+
+getQuestionById = (id) => {
+    return questionModel
+            .findByid(id)
+            .populate('restaurant', '_id name')
+            .populate('user', '_id name');
+}
+
+getAllQuestions = () => {
+    return questionModel
+            .find();
+}
+
 module.exports = {
-    createQuestion
+    createQuestion,
+    getQuestionsByRestaurantId,
+    getQuestionsByUserId,
+    getAllQuestions,
+    getQuestionById
 };

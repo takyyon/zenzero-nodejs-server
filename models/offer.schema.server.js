@@ -6,6 +6,7 @@ const offerSchema = mongoose.Schema({
     start: String,
     end: String,
     likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UserModel' }],
+    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'RestaurantModel' },
     created: {type: Date, default: Date.now},
 }, {collection: 'offer'});
 
