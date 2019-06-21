@@ -5,6 +5,7 @@ const offerSchema = mongoose.Schema({
     text: String,
     start: String,
     end: String,
+    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UserModel' }],
     created: {type: Date, default: Date.now},
 }, {collection: 'offer'});
 

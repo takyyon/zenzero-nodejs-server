@@ -22,10 +22,10 @@ app.use(session({
  }));
  
 
-const yelpService = require('./services/yelp.service.server');
-yelpService(app);
-
 const userController = require('./controllers/user.controller.server');
 userController(app);
+
+const restaurantController = require('./controllers/restaurant.controller.server');
+restaurantController(app);
 
 app.listen(8080);

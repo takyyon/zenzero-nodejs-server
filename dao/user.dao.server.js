@@ -3,15 +3,15 @@ const buyerDao = require('./buyer.dao.server');
 const ownerDao = require('./owner.dao.server');
 
 findAllUsers = () => {
-    return userModel.find();
+    return userModel.find().populate('owner').populate('buyer');
 };
 
 findUserById = (id) => {
-    return userModel.findById(id);
+    return userModel.findById(id).populate('owner').populate('buyer');
 };
 
 findUserByFields = (fields) => {
-    return userModel.findOne(fields);
+    return userModel.findOne(fields).populate('owner').populate('buyer');
 }
 
 registerBuyer = (body) => {
@@ -20,7 +20,7 @@ registerBuyer = (body) => {
         name: body.name,
         email: body.email,
         password: body.password,
-        buyer: buyer,
+        buyer: buyer._id,
         owner: null
     });
 }
@@ -32,18 +32,18 @@ registerOwner = (body) => {
         email: body.email,
         password: body.password,
         buyer: null,
-        owner: owner
+        owner: owner._id
     });
 }
 
 createBuyerForUser = (id) => {
     const buyer = buyerDao.register();
-    return userModel.update({_id: id}, {$set: { buyer: buyer }});
+    return userModel.update({_id: id}, {$set: { buyer: buyer._id }});
 }
 
 createOwnerForUser = (id) => {
     const owner = ownerDao.register();
-    return userModel.update({_id: id}, {$set: { owner: owner }});
+    return userModel.update({_id: id}, {$set: { owner: owner._id }});
 }
 
 updateUser = (id, newUser) => {

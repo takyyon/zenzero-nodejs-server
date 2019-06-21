@@ -7,8 +7,8 @@ const userSchema = mongoose.Schema({
     email: String,
     password: String,
     created: {type: Date, default: Date.now},
-    owner: ownerSchema,
-    buyer: buyerSchema
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'OwnerModel' },
+    buyer: { type: mongoose.Schema.Types.ObjectId, ref: 'BuyerModel' }
 }, {collection: 'user'});
 
 module.exports = userSchema;
