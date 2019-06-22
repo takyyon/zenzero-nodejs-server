@@ -2,19 +2,24 @@ module.exports = function(app) {
     
     const questionService = require('./../services/question.service.server');
     const commentService = require('./../services/comment.service.server');
+    const constants = require('../utility/constants')();
+    const jwt = require('jsonwebtoken');
     
     createComment = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        const questionId = req.params.id;
-        commentService.createComment(req.body, questionId, req.session['user']._id)
-            .then((comment) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                const questionId = req.params.id;
+                commentService.createComment(req.body, questionId, authData.id)
+                    .then((comment) => {
+                        res.send(200);
+                    });
+            }
+        });
     }
 
-    getCommentsByQuestionId = (id) => {
+    getCommentsByQuestionId = (req, res) => {
         const questionId = req.params.id;
         commentService.getCommentsByQuestionId(questionId)
             .then((comment) => {
@@ -22,15 +27,48 @@ module.exports = function(app) {
             });
     }
 
-    getQuestionById = (id) => {
+    getQuestionById = (req, res) => {
         const questionId = req.params.id;
-        questionService.getQuestionById(id)
+        questionService.getQuestionById(questionId)
             .then((question) => {
-                res.json(question);
+                const questionObject = {
+                    '_id': question._id,
+                    'text': question.text,
+                    'comments': [],
+                    'user': question.user,
+                    'restaurant': question.restaurant
+                };
+                
+                commentService.getCommentsByQuestionId(questionId)
+                    .then((comments) => {
+                        questionObject.comments = comments;
+                        res.json(questionObject);
+                    });
             });
     }
 
-    app.post('/api/questions/:id/comments', createComment);
+    getAllQuestions = (req, res) => {
+        questionService.getAllQuestions()
+            .then((questions) => {
+                res.json(questions);
+            });
+    }
+
+    verifyToken = (req, res, next) => {
+        const authHeader = req.headers['authorization'];
+        if(typeof authHeader !== 'undefined') {
+            const bearer = authHeader.split(' ');
+            const bearerToken = bearer[1];
+            req.token = bearerToken;
+            next();
+        }else {
+            res.sendStatus(403);
+        }
+    }
+
+    app.get('/api/questions/', getAllQuestions);
+
+    app.post('/api/questions/:id/comments', verifyToken, createComment);
 
     app.get('/api/questions/:id/comments', getCommentsByQuestionId);
 

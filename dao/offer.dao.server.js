@@ -17,14 +17,16 @@ getOffersByRestaurantId = (restaurantId) => {
 }
 
 getOffersByUserId = (userId) => {
+    
     return offerModel
-            .find({'liked.$': userId});
+            .find({'likedBy': userId});
 }
 
 getOffersById = (id) => {
     return offerModel
-            .findByid(id)
-            .populate('restaurant', '_id name');
+            .findById(id)
+            .populate('restaurant', '_id name')
+            .populate('likedBy', '_id name');
 }
 
 getAllOffers = () => {
@@ -33,11 +35,20 @@ getAllOffers = () => {
 }
 
 likeOffer = (id, userId) => {
-    return offerModel.update({'_id': id}, {'$push': {'liked': userId}});
+    return offerModel.update({'_id': id}, 
+        { $push: 
+            {'likedBy': userId
+        }});
+}
+
+unLikeOffer = (id, userId) => {
+    return offerModel.update({'_id': id}, {
+        $pull: {'likedBy': userId}
+    });
 }
 
 deleteOffer = (id) => {
-    return offerModel.remove({'_id': id});
+    return offerModel.deleteOne({'_id': id});
 }
 
 updateOffer = (id, newOffer) => {

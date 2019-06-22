@@ -19,26 +19,37 @@ getEventsByRestaurantId = (restaurantId) => {
 
 getEventsByUserId = (userId) => {
     return eventModel
-            .find({'liked.$': userId});
+            .find({'likedBy': userId})
 }
 
 getEventsById = (id) => {
     return eventModel
-            .findByid(id)
-            .populate('restaurant', '_id name');
+            .findById(id)
+            .populate('restaurant', '_id name')
+            .populate('likedBy', '_id name');
 }
 
 getAllEvents = () => {
     return eventModel
-            .find();
+            .find()
+            .populate('restaurant', '_id name')
+            .populate('likedBy', '_id name');
 }
 
 likeEvent = (id, userId) => {
-    return eventModel.update({'_id': id}, {'$push': {'liked': userId}});
+    return eventModel.update({'_id': id},
+        {$push: { 'likedBy' : userId 
+    }});
+}
+
+unLikeEvent = (id, userId) => {
+    return eventModel.update({'_id': id}, {
+        $pull: {'likedBy': userId}
+    });
 }
 
 deleteEvent = (id) => {
-    return eventModel.remove({'_id': id});
+    return eventModel.deleteOne({'_id': id});
 }
 
 updateEvent = (id, newEvent) => {
@@ -58,5 +69,6 @@ module.exports = {
     getEventsById,
     likeEvent,
     deleteEvent,
-    updateEvent
+    updateEvent,
+    unLikeEvent
 };

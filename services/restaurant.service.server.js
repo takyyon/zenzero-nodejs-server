@@ -29,6 +29,14 @@ registerToRestaurant = (restaurantId, userId) => {
     return restaurantDao.registerToRestaurant(restaurantId, userId);
 }
 
+deRegisterToRestaurant = (restaurantId, userId) => {
+    return restaurantDao.deRegisterToRestaurant(restaurantId, userId);
+}
+
+findRestaurantsByUserId = (id) => {
+    return restaurantDao.findRestaurantsByUserId(id);
+}
+
 module.exports = {
     saveRestaurants,
     findAllRestaurants,
@@ -36,5 +44,7 @@ module.exports = {
     deleteAllRestaurants,
     createRestaurant,
     findRestaurantByYelpId,
-    registerToRestaurant
+    registerToRestaurant,
+    findRestaurantsByUserId,
+    deRegisterToRestaurant
 };

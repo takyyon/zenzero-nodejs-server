@@ -5,6 +5,8 @@ module.exports = function(app) {
     const questionService = require('./../services/question.service.server');
     const yelpService = require('./../services/yelp.service.server');
     const async = require('async');
+    const constants = require('../utility/constants')();
+    const jwt = require('jsonwebtoken');
 
     processRestaurants = (data, res) => {
         if(data.statusCode != 200){
@@ -75,47 +77,63 @@ module.exports = function(app) {
     }
 
     createOffer = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        offerService.createOffer(req.body, req.params.id)
-            .then((offer) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                offerService.createOffer(req.body, req.params.id)
+                    .then((offer) => {
+                        res.send(200);
+                    });
+            }
+        });
     }
 
     createEvent = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        eventService.createEvent(req.body, req.params.id,)
-            .then((event) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                eventService.createEvent(req.body, req.params.id)
+                    .then((event) => {
+                        res.send(200);
+                    });
+            }
+        });
     }
 
     createQuestion = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        questionService.createQuestion(req.body, req.params.id, req.session['user']._id)
-            .then((question) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                questionService.createQuestion(req.body, req.params.id, authData.user)
+                    .then((question) => {
+                        res.send(200);
+                    });
+            }
+        });
     }
 
     getRestaurantById = (req, res) => {
         const restaurantId = req.params.id;
-        restaurantService.getRestaurantById(restaurantId)
+        restaurantService.findRestaurantById(restaurantId)
             .then((restaurant) => {
                 yelpService.findRestaurantById(restaurant.yelp)
                     .then((yelpRestaurant) => {
+                        const restaurantDetail = yelpRestaurant.jsonBody;
+                        restaurantDetail.user = restaurant.user;
                         questionService.getQuestionsByRestaurantId(restaurantId)
                             .then((questions) => {
-                                yelpRestaurant.questions = questions;
+                                restaurantDetail.questions = questions;
                                 eventService.getEventsByRestaurantId(restaurantId)
                                     .then((events) => {
-                                        yelpRestaurant.events = events;
+                                        restaurantDetail.events = events;
+                                        offerService.getOffersByRestaurantId(restaurantId)
+                                            .then((offers) => {
+                                                restaurantDetail.offers = offers;
+                                                res.json(restaurantDetail);
+                                            });
                                     });
                             });
                     });
@@ -123,35 +141,60 @@ module.exports = function(app) {
     }
 
     registerToRestaurant = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        restaurantService.registerToRestaurant(req.params.id, req.session['user']._id)
-            .then((restaurant) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                restaurantService.registerToRestaurant(req.params.id, authData.user)
+                    .then((restaurant) => {
+                        res.send(200);
+                    });
+            }
+        });
+    }
+
+    deRegisterToRestaurant = (req, res) => {
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                restaurantService.deRegisterToRestaurant(req.params.id, authData.user)
+                    .then((restaurant) => {
+                        res.send(200);
+                    });
+            }
+        });
     }
 
     getQuestionsByRestaurantId = (req, res) => {
         res.send(200);
     }
 
+    verifyToken = (req, res, next) => {
+        const authHeader = req.headers['authorization'];
+        if(typeof authHeader !== 'undefined') {
+            const bearer = authHeader.split(' ');
+            const bearerToken = bearer[1];
+            req.token = bearerToken;
+            next();
+        }else {
+            res.sendStatus(403);
+        }
+    }
+
 
     app.delete('/api/restaurants/', deleteAllRestaurants);
 
-    app.post('/api/restaurants/:id/offer', createOffer);
-    app.post('/api/restaurants/:id/event', createEvent);
-    app.post('/api/restaurants/:id/question', createQuestion);
+    app.post('/api/restaurants/:id/de-register/', verifyToken, deRegisterToRestaurant);
+    app.post('/api/restaurants/:id/register/', verifyToken, registerToRestaurant);
+    app.post('/api/restaurants/:id/offers/', verifyToken, createOffer);
+    app.post('/api/restaurants/:id/events/', verifyToken, createEvent);
+    app.post('/api/restaurants/:id/questions/', verifyToken, createQuestion);
 
-    app.get('/api/restaurants/:id/question', getQuestionsByRestaurantId);
 
+    app.get('/api/restaurants/:id/questions/', getQuestionsByRestaurantId);
     app.get('/api/restaurants/:id', getRestaurantById);
-
-    app.put('/api/restaurants/:id/register', registerToRestaurant);
-
     app.get('/api/restaurants/', findAllRestaurants);
-
     app.get('/api/restaurants/db/:id', findDbRestaurantById);
-
     app.get('/api/restaurants/db/', findAllDbRestaurants);
 };

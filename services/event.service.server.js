@@ -24,6 +24,10 @@ likeEvent = (id, userId) => {
     return eventDao.likeEvent(id, userId);
 }
 
+unLikeEvent = (id, userId) => {
+    return eventDao.unLikeEvent(id, userId);
+}
+
 deleteEvent = (id) => {
     return eventDao.deleteEvent(id);
 }
@@ -40,5 +44,6 @@ module.exports = {
     getEventsById,
     likeEvent,
     deleteEvent,
-    updateEvent
+    updateEvent,
+    unLikeEvent
 };

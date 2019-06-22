@@ -41,7 +41,15 @@ deleteAllRestaurants = () => {
 
 registerToRestaurant = (restaurantId, userId) => {
     return restaurantModel.update({'_id': restaurantId}, { 'user': userId });
+}
+
+deRegisterToRestaurant = (restaurantId, userId) => {
+    return restaurantModel.update({'_id': restaurantId}, { 'user': null });
 ;}
+
+findRestaurantsByUserId = (id) => {
+    return restaurantModel.find({'user': id}).populate('user', '_id name');
+}
 
 module.exports = {
     findRestaurantById,
@@ -50,5 +58,7 @@ module.exports = {
     createRestaurant,
     createRestaurantInBatch,
     deleteAllRestaurants,
-    registerToRestaurant
+    registerToRestaurant,
+    findRestaurantsByUserId,
+    deRegisterToRestaurant
 };

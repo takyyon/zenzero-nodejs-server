@@ -24,6 +24,10 @@ likeOffer = (id, userId) => {
     return offerDao.likeOffer(id, userId);
 }
 
+unLikeOffer = (id, userId) => {
+    return offerDao.unLikeOffer(id, userId);
+}
+
 deleteOffer = (id) => {
     return offerDao.deleteOffer(id);
 }
@@ -40,5 +44,6 @@ module.exports = {
     getOffersById,
     likeOffer,
     deleteOffer,
-    updateOffer
+    updateOffer,
+    unLikeOffer
 };

@@ -5,7 +5,7 @@ createComment = (comment, questionId, userId) => {
 }
 
 getCommentsByQuestionId = (id) => {
-    return commentDao.getCommentsForQuestionId(id);
+    return commentDao.getCommentsByQuestionId(id);
 }
 
 getAllComments = () => {

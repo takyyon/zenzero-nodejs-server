@@ -25,7 +25,7 @@ findAllRestaurantsByTerm = (location, term) => {
 }
 
 findRestaurantById = (restaurantId) => {
-    return yelpClient.buisness(restaurantId);
+    return yelpClient.business(restaurantId);
 }
 
 module.exports = {

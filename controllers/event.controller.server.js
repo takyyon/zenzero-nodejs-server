@@ -1,16 +1,19 @@
 module.exports = function(app) {
     const eventService = require('./../services/event.service.server');
-   
+    const constants = require('../utility/constants')();
+    const jwt = require('jsonwebtoken');
 
     deleteEventById = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-
-        eventService.deleteEvent(req.params.id)
-            .then(() => {
-                res.json(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                eventService.deleteEvent(req.params.id)
+                    .then(() => {
+                        res.json(200);
+                    });
+            }
+        });
     }
 
     getEventById = (req, res) => {
@@ -21,20 +24,72 @@ module.exports = function(app) {
     }
 
     updateEvent = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                eventService.updateEvent(req.params.id, req.body)
+                    .then((event) => {
+                        res.sendStatus(200);
+                    });
+            }
+        });
+    }
 
-        eventService.updateEvent(req.params.id, req.body)
-            .then((event) => {
-                res.json(event);
+    likeEvent = (req, res) => {
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                eventService.likeEvent(req.params.id, authData.user)
+                    .then((response) => {
+                        res.sendStatus(200);
+                    });
+            }
+        });
+    }
+
+    unLikeEvent = (req, res) => {
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                eventService.unLikeEvent(req.params.id, authData.user)
+                    .then((response) => {
+                        res.sendStatus(200);
+                    });
+            }
+        });
+    }
+
+    getAllEvents = (req, res) => {
+        eventService.getAllEvents()
+            .then((events) => {
+                res.json(events);
             });
     }
 
-    app.delete('/api/events/:id', deleteEventById);
+    verifyToken = (req, res, next) => {
+        const authHeader = req.headers['authorization'];
+        if(typeof authHeader !== 'undefined') {
+            const bearer = authHeader.split(' ');
+            const bearerToken = bearer[1];
+            req.token = bearerToken;
+            next();
+        }else {
+            res.sendStatus(403);
+        }
+    }
+
+    app.get('/api/events/:id/like/', verifyToken, likeEvent);
+    app.get('/api/events/:id/un-like/', verifyToken, unLikeEvent);
+
+    app.delete('/api/events/:id', verifyToken, deleteEventById);
 
     app.get('/api/events/:id', getEventById);
 
-    app.put('/api/events/:id/', updateEvent);
+    app.get('/api/events/', getAllEvents);
+
+    app.put('/api/events/:id/', verifyToken, updateEvent);
 
 };

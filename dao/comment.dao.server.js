@@ -1,8 +1,8 @@
 const commentModel = require('./../models/comment.model.server');
 
-createComment = (event, questionId, userId) => {
+createComment = (comment, questionId, userId) => {
     return commentModel.create({
-        text: event.text,
+        text: comment.text,
         user: userId,
         question: questionId
     });
