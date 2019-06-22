@@ -75,7 +75,7 @@ module.exports = function(app) {
     loginOwner = (req, res) => {
         userService.login(req.body)
             .then((user) => {
-                if(user && user.buyer) {
+                if(user && user.owner) {
                     login(res, user, 'owner');
                 }else {
                     res.sendStatus(404);
@@ -223,7 +223,7 @@ module.exports = function(app) {
     
     app.get('/api/users/:id/events/', getEventsByUserId);
     app.get('/api/users/', findAllUsers);    
-    app.get('/api/users/', findAllUsers);
+
     app.get('/api/users/:id/buyer/', findBuyerInfo);
     app.get('/api/users/:id/owner/', findOwnerInfo);
     app.post('/api/users/buyer/login/', loginBuyer);

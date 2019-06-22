@@ -1,7 +1,7 @@
 const userModel = require('./../models/user.model.server');
 
 findAllUsers = () => {
-    return userModel.find({}, '_id name email buyer owner');
+    return userModel.find({}, '_id name email buyer owner created');
 };
 
 findUserById = (id) => {
