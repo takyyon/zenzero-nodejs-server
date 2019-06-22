@@ -1,5 +1,11 @@
 module.exports = function(app) {
     const userService = require('./../services/user.service.server');
+    const offerService = require('./../services/offer.service.server');
+    const eventService = require('./../services/event.service.server');
+    const questionService = require('./../services/question.service.server');
+    const restaurantService = require('./../services/restaurant.service.server');
+    const constants = require('../utility/constants')();
+    const jwt = require('jsonwebtoken');
 
     findAllUsers = (req, res) => {
         userService.findAllUsers()
@@ -9,93 +15,126 @@ module.exports = function(app) {
     registerBuyer = (req, res) => {
         userService.registerBuyer(req.body)
             .then((user) => {
-                req.session['user'] = user;
-                req.session['type'] = 'buyer';
-                res.send(req.session);
+                login(res, user, 'buyer');
             });
     }
 
     registerOwner = (req, res) => {
         userService.registerOwner(req.body)
             .then((user) => {
-                req.session['user'] = user;
-                req.session['type'] = 'owner';
-                res.send(req.session);
+                login(res, user, 'owner');
             });
     }
 
     createBuyerForUser = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        userService.createBuyerForUser(req.session['user']._id)
-            .then((user) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                userService.createBuyerForUser(authData.user)
+                .then((response) => {
+                    res.send(200);
+                });
+            }
+        });
     }
 
     createOwnerForUser = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        userService.createOwnerForUser(req.session['user']._id)
-            .then((user) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                userService.createOwnerForUser(authData.user)
+                .then((response) => {
+                    res.send(200);
+                });
+            }
+        });
+    }
+
+    login = (res, user, type) => {
+        jwt.sign({
+            user: user._id,
+            type: type
+        }, constants.jsonSecret, (err, token) => {
+            res.json({token})
+        });
     }
 
     loginBuyer = (req, res) => {
-        if(req.session['user']) {
-            res.send(400);
-        }
         userService.login(req.body)
             .then((user) => {
-                if(user == null || (
-                    user && !user.buyer
-                )) {
-                    res.send(400);
+                if(user && user.buyer) {
+                    login(res, user, 'buyer');
+                }else {
+                    res.sendStatus(404);
                 }
-                req.session['user'] = user;
-                req.session['type'] = 'buyer';
-                res.send(req.session);
             });
     }
 
     loginOwner = (req, res) => {
-        if(req.session['user']) {
-            res.send(400);
-        }
         userService.login(req.body)
             .then((user) => {
-                if(user == null || (
-                    user && !user.owner
-                )) {
-                    res.send(400);
+                if(user && user.buyer) {
+                    login(res, user, 'owner');
+                }else {
+                    res.sendStatus(404);
                 }
-                req.session['user'] = user;
-                req.session['type'] = 'owner';
-                res.send(req.session);
             });
     }
 
     logout = (req, res) => {
-        req.session.destroy();
-        res.send(200);
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                /**
+                 * TODO: Remove token from Client
+                 */
+            }
+        });
     }
 
     fetchLoggedUser = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        userService.findUserById(req.session['user']._id)
-            .then((user) => {
-                const returnUser = {
-                    type: req.session['type'],
-                    id: user._id,
-                    name: user.name,
-                    email: user.email
-                };
-                res.json(returnUser);
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                userService.findUserById(authData.user)
+                    .then((user) => {
+                        const returnUser = {
+                            type: authData.type,
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            buyer: user.buyer,
+                            owner: user.owner
+                        };
+                        res.json(returnUser);
+                    })
+            }
+        });
+    }
+
+    switchUser = (req, res) => {
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                jwt.sign({
+                    user: authData.user,
+                    type: authData.type == 'buyer' ? 'owner' : 'buyer'
+                }, constants.jsonSecret, (err, token) => {
+                    res.json({token});
+                });
+            }
+        });
+    }
+
+    getEventsByUserId = (req, res) => {
+        eventService.getEventsByUserId(req.params.id)
+            .then((event) => {
+                res.json(event);
             });
     }
 
@@ -105,15 +144,26 @@ module.exports = function(app) {
             .then((user) => {
                 if(user && user.buyer) {
                     const buyer = {
-                        id: user._id,
+                        id: user.id,
                         name: user.name,
-                        offers: user.buyer.offers,
-                        questions: user.buyer.questions,
-                        events: user.buyer.events
+                        type: 'buyer'
                     };
-                    res.json(buyer);
+                    offerService.getOffersByUserId(user.id)
+                        .then((offers) => {
+                            buyer.offers = offers;
+                            eventService.getEventsByUserId(user.id)
+                                .then((events) => {
+                                    buyer.events = events;
+                                    questionService.getQuestionsByUserId(user.id)
+                                        .then((questions) => {
+                                            buyer.questions = questions;
+                                            res.json(buyer);
+                                        })         
+                                });
+                        });
+                }else {
+                    res.send(400);
                 }
-                res.send(400);
             });
     }
 
@@ -123,58 +173,62 @@ module.exports = function(app) {
             .then((user) => {
                 if(user && user.owner) {
                     const owner = {
-                        id: user._id,
+                        id: user.id,
                         name: user.name,
-                        restaurants: user.owner.restaurants,
-                        comments: user.owner.comments
+                        email: user.email,
+                        type: 'owner'
                     };
-                    res.json(owner);
+                    restaurantService.findRestaurantsByUserId(user.id)
+                        .then((restaurants) => {
+                            owner.restaurants = restaurants;
+                            res.json(owner);
+                        });
+                }else {
+                    res.send(400);
                 }
-                res.send(400);
-            });
-    }
-
-    switchUser = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        userService.findUserById(req.session['user']._id)
-            .then((user) => {
-                if(req.session['type'] == 'buyer' && user.owner) {
-                    req.session['type'] = 'owner';
-                    res.send(200);
-                }
-                if(req.session['type'] == 'owner' && user.buyer) {
-                    req.session['type'] = 'buyer';
-                    res.send(200);
-                }
-                res.send(400);
             });
     }
 
     updateUser = (req, res) => {
-        if(!req.session['user']) {
-            res.send(400);
-        }
-        userService.updateUser(req.session['user']._id, req.body)
-            .then((user) => {
-                res.send(200);
-            });
+        jwt.verify(req.token, constants.jsonSecret, (err, authData) => {
+            if(err){
+                res.sendStatus(403);
+            }else {
+                userService.updateUser(authData.user, req.body)
+                    .then((user) => {
+                        login(res, user, authData.type);
+                    });
+            }
+        });
     }
 
+    verifyToken = (req, res, next) => {
+        const authHeader = req.headers['authorization'];
+        if(typeof authHeader !== 'undefined') {
+            const bearer = authHeader.split(' ');
+            const bearerToken = bearer[1];
+            req.token = bearerToken;
+            next();
+        }else {
+            res.sendStatus(403);
+        }
+    }
 
-    app.get('/api/users/logout/', logout);
+    app.get('/api/users/logout/', verifyToken, logout);
+    app.get('/api/users/session/', verifyToken, fetchLoggedUser);
+    app.get('/api/users/switch/', verifyToken, switchUser);
+    app.put('/api/users/update/', verifyToken, updateUser);
+    app.get('/api/users/buyer/register/', verifyToken, createBuyerForUser);
+    app.get('/api/users/owner/register/', verifyToken, createOwnerForUser);
+    
+    app.get('/api/users/:id/events/', getEventsByUserId);
+    app.get('/api/users/', findAllUsers);    
     app.get('/api/users/', findAllUsers);
-    app.put('/api/users/update', updateUser);
-    app.get('/api/users/', findAllUsers);
-    app.get('/api/users/switch', switchUser);
     app.get('/api/users/:id/buyer/', findBuyerInfo);
     app.get('/api/users/:id/owner/', findOwnerInfo);
-    app.get('/api/users/session/', fetchLoggedUser);
     app.post('/api/users/buyer/login/', loginBuyer);
     app.post('/api/users/owner/login/', loginOwner);
-    app.get('/api/users/buyer/register/', createBuyerForUser);
-    app.get('/api/users/owner/register/', createOwnerForUser);
+    
     app.post('/api/users/register/buyer/', registerBuyer);
     app.post('/api/users/register/owner/', registerOwner);
 }

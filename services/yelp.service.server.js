@@ -1,49 +1,24 @@
-const constants = require('../utility/constants')();
-const yelp = require('yelp-fusion');
-module.exports = (app) => {
-    const yelpClient = yelp.client(constants.yelpApiKey);
-    const yelpDao = require('../dao/yelp.dao.server')(yelpClient);
+const yelpDao = require('../dao/yelp.dao.server');
 
-    findAllRestaurants = (req, res) => {
-        var location = req.query.location;
-        if(location == undefined || location == null){
-            // set default location
-            location = 'boston, ma';
-        }
-        const promise = yelpDao.findAllRestaurants(location);
-        promise.then(apiResponse => {
-            res.json({data: apiResponse.jsonBody.businesses, error: 200, message: null});
-        }).catch(e => {
-            res.json({data: null, error: 400, message: e});
-        });
-    }
+findAllRestaurants = () => {
+    return yelpDao.findAllRestaurants();
+}
 
-    findAllRestaurantsByTerm = (req, res) => {
-        var location = req.query.location;
-        var term = req.params.term;
-        if(location == undefined || location == null){
-            // set default location
-            location = 'boston, ma';
-        }
-        const promise = yelpDao.findAllRestaurantsByTerm(location, term);
-        promise.then(apiResponse => {
-            res.json({data: apiResponse.jsonBody.businesses, error: 200, message: null});
-        }).catch(e => {
-            res.json({data: null, error: 400, message: e});
-        });
-    }
+findAllRestaurantsByLocation = (location) => {
+    return yelpDao.findAllRestaurantsByLocation(location);
+}
 
-    findRestaurantById = (req, res) => {
-        const restaurantId = req.params.id;
-        const promise = yelpDao.findRestaurantById(restaurantId);
-        promise.then(apiResponse => {
-            res.json({data: apiResponse.jsonBody, error: 200, message: null});
-        }).catch(e => {
-            res.json({data: null, error: 400, message: e});
-        })
-    }
+findAllRestaurantsByTerm = (location, term) => {
+    return yelpDao.findAllRestaurantsByTerm(location, term);
+}
 
-    app.get('/api/restaurants', findAllRestaurants);
-    app.get('/api/restaurants/term/:term', findAllRestaurants);
-    app.get('/api/restaurants/:id', findRestaurantById);
+findRestaurantById = (id) => {
+    return yelpDao.findRestaurantById(id);
+}
+
+module.exports = {
+    findAllRestaurants,
+    findAllRestaurantsByLocation,
+    findAllRestaurantsByTerm,
+    findRestaurantById
 };

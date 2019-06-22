@@ -7,8 +7,8 @@ const userSchema = mongoose.Schema({
     email: String,
     password: String,
     created: {type: Date, default: Date.now},
-    owner: ownerSchema,
-    buyer: buyerSchema
+    owner: Boolean,
+    buyer: Boolean
 }, {collection: 'user'});
 
 module.exports = userSchema;

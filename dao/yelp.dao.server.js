@@ -1,26 +1,36 @@
-module.exports = (yelpClient) => {
-    
-    findAllRestaurants = (location) => {
-        return yelpClient.search({
-            location: location,
-            category: 'restaurants'
-        });
-    }
+const constants = require('../utility/constants')();
+const yelp = require('yelp-fusion');
+const yelpClient = yelp.client(constants.yelpApiKey);
 
-    findAllRestaurantsByTerm = (location, term) => {
-        return yelpClient.search({
-            term: term,
-            location: location,
-            category: 'restaurants'
-        });
-    }
+findAllRestaurantsByLocation = (location) => {
+    return yelpClient.search({
+        location: location,
+        category: 'restaurants'
+    });
+}
 
-    findRestaurantById = (restaurantId) => {
-        return yelpClient.buisness(restaurantId);
-    }
+findAllRestaurants = () => {
+    return yelpClient.search({
+        location: '',
+        category: 'restaurants'
+    });
+}
 
-    return {
-        findAllRestaurants,
-        findRestaurantById
-    };
+findAllRestaurantsByTerm = (location, term) => {
+    return yelpClient.search({
+        term: term,
+        location: location,
+        category: 'restaurants'
+    });
+}
+
+findRestaurantById = (restaurantId) => {
+    return yelpClient.business(restaurantId);
+}
+
+module.exports = {
+    findAllRestaurants,
+    findAllRestaurantsByLocation,
+    findAllRestaurantsByTerm,
+    findRestaurantById
 };
