@@ -5,11 +5,11 @@ require('./models/db');
 
 var app = express();
 
-app.use(session({
-  resave: false,
-  saveUninitialized: true,
-  secret: 'zenzero#'
- }));
+// app.use(session({
+//   resave: false,
+//   saveUninitialized: true,
+//   secret: 'zenzero#'
+//  }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,7 +41,8 @@ questionController(app);
 
 
 app.listen(process.env.PORT || 8080, function () {
-  var port = server.address().port;
-  console.log("Express is working on port " + port);
+  console.log('Connected');
+  // var port = server.address().port;
+  // console.log("Express is working on port " + port);
 });
 // app.listen(8080);
