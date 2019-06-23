@@ -25,7 +25,7 @@ getEventsByUserId = (userId) => {
 getEventsById = (id) => {
     return eventModel
             .findById(id)
-            .populate('restaurant', '_id name')
+            .populate('restaurant', '_id name user')
             .populate('likedBy', '_id name');
 }
 

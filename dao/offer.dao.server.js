@@ -25,7 +25,7 @@ getOffersByUserId = (userId) => {
 getOffersById = (id) => {
     return offerModel
             .findById(id)
-            .populate('restaurant', '_id name')
+            .populate('restaurant', '_id name user')
             .populate('likedBy', '_id name');
 }
 

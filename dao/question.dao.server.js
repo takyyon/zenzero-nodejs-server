@@ -21,7 +21,7 @@ getQuestionsByUserId = (userId) => {
 getQuestionById = (id) => {
     return questionModel
             .findById(id)
-            .populate('restaurant', '_id name')
+            .populate('restaurant', '_id name user')
             .populate('user', '_id name');
 }
 
