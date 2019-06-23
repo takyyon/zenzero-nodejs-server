@@ -39,4 +39,9 @@ eventController(app);
 const questionController = require('./controllers/question.controller.server');
 questionController(app);
 
-app.listen(8080);
+
+app.listen(process.env.PORT || 8080, function () {
+  var port = server.address().port;
+  console.log("Express is working on port " + port);
+});
+// app.listen(8080);
